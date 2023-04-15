@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,14 +34,13 @@ public class InterviewBookService implements ExternalBookService {
 
         String apiUrl = api + authorName + "&api-key=" + apiKey;
 
-        ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
+        ResponseEntity<BookResponseDTO> response = restTemplate.getForEntity(apiUrl, BookResponseDTO.class);
         if (response.getStatusCode() != HttpStatus.OK) {
             throw new IOException("Failed to retrieve books for author: " + authorName);
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        BookResponseDTO bookResponse = objectMapper.readValue(response.getBody(), BookResponseDTO.class);
-        return bookResponse.getResults().stream()
+
+        return Objects.requireNonNull(response.getBody()).getResults().stream()
             .map(bookDTO -> new Book()
                 .title(bookDTO.getBook_title())
                 .author(new Author().name(bookDTO.getBook_author()))
